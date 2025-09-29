@@ -1,4 +1,4 @@
-# Quick run flow — LiteLLM + Layer SDK guardrail
+# Quickstart: LiteLLM + Layer SDK guardrail
 
 Follow these steps to run the example guardrail and walk through the notebook integration.
 
@@ -52,4 +52,3 @@ Where to look in the code
 - `litellm-protectai-layersdk/start.py` — example runner that integrates the guardrail.
 - `litellm-protectai-layersdk/layer_integration.ipynb` — walkthrough notebook to exercise the integration.
 
-If you want automated tests or a more detailed developer guide next, tell me which part to expand and I will add it.
