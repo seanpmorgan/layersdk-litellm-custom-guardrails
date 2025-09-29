@@ -1,4 +1,6 @@
 litellm[proxy]
-layer-sdk
+protectai-layer-sdk
 httpx
 python-dotenv
+requests
+
