@@ -146,49 +146,6 @@ class LayerGuardrail(CustomGuardrail):
         print(f"No user_id found, using default")
         return "default_user_id"
 
-    def _has_sync_permission(self, user_api_key_dict: Optional[dict], data: dict) -> bool:
-        """Return True if the request has permission to perform syncing/augment actions.
-
-        Permission is granted if any of the following are true (in order):
-        - An environment override LAYER_ALLOW_SYNC is set to a truthy value
-        - The user_api_key_dict contains a 'permissions' list that includes 'sync' or 'augment'
-        - The request metadata headers include 'x-allow-sync' set to a truthy value
-
-        This helper centralizes the permission check so we can safely skip calls to
-        Layer SDK methods (create_session, append_action, firewall lookup) when not allowed.
-        """
-        # Env override (useful for testing)
-        env_override = os.getenv("LAYER_ALLOW_SYNC", "").lower()
-        if env_override in ("1", "true", "yes", "on"):
-            print("_has_sync_permission: allowed via LAYER_ALLOW_SYNC env override")
-            return True
-
-        # Check user_api_key_dict for explicit permissions
-        try:
-            if user_api_key_dict and isinstance(user_api_key_dict, dict):
-                perms = user_api_key_dict.get("permissions") or user_api_key_dict.get("scopes")
-                if isinstance(perms, (list, tuple)):
-                    for p in perms:
-                        if str(p).lower() in ("sync", "augment"):
-                            print("_has_sync_permission: allowed via user_api_key permissions")
-                            return True
-        except Exception:
-            pass
-
-        # Check request headers (metadata) for allow flag
-        try:
-            metadata = data.get("metadata", {}) if isinstance(data, dict) else {}
-            headers = metadata.get("headers", {}) if isinstance(metadata, dict) else {}
-            header_val = headers.get("x-allow-sync") or headers.get("X-Allow-Sync")
-            if header_val is not None and str(header_val).lower() in ("1", "true", "yes", "on"):
-                print("_has_sync_permission: allowed via request header x-allow-sync")
-                return True
-        except Exception:
-            pass
-
-        print("_has_sync_permission: NO sync permission found")
-        return False
-
     async def async_pre_call_hook(self, user_api_key_dict, cache, data: dict, call_type: str, **kwargs) -> Optional[dict]:
         """Pre-call: Create/reuse session, track prompt, and enforce firewall policies"""
         # Create a unique request ID to prevent duplicate processing
@@ -201,11 +158,6 @@ class LayerGuardrail(CustomGuardrail):
         self.processed_requests.add(request_id)
         print(f"PRE_CALL: Processing request {request_id}")
         
-        # Permission check: only perform Layer syncing/tracking if allowed
-        if not self._has_sync_permission(user_api_key_dict, data):
-            print("Sync permission not present - skipping Layer SDK tracking for this request")
-            return data
-
         if not self._ensure_layer_sdk_initialized():
             print("Layer SDK not available - skipping tracking")
             return data
@@ -338,18 +290,12 @@ class LayerGuardrail(CustomGuardrail):
         _PROCESSED_RESPONSES.add(response_id)
         print(f"POST_CALL_SUCCESS: Processing response {response_id}")
         
-        # Respect permission: if the original request didn't allow syncing, skip tracking
-        request_data = kwargs.get('data', {})
-        if not self._has_sync_permission(user_api_key_dict, request_data):
-            print("POST_CALL_SUCCESS: sync permission missing - skipping response tracking")
-            return response
-
         if not self.layer_initialized:
             return response
             
         try:
             # Get session info from request data
-            # request_data already obtained above
+            request_data = kwargs.get('data', {})
             session_id = request_data.get('_layer_session_id')
             user_id = request_data.get('_layer_user_id', 'unknown')
             
@@ -395,11 +341,6 @@ class LayerGuardrail(CustomGuardrail):
 
     async def async_post_call_failure_hook(self, user_api_key_dict, original_exception, request_data=None, call_type=None, **kwargs):
         """Post-call failure: Track errors and firewall blocks"""
-        # Respect permission: only track failures if sync permission was granted for the request
-        if not self._has_sync_permission(user_api_key_dict, request_data or {}):
-            print("POST_CALL_FAILURE: sync permission missing - skipping error tracking")
-            raise original_exception
-
         if self.layer_initialized and self.user_sessions:
             try:
                 session_id = list(self.user_sessions.values())[-1]
