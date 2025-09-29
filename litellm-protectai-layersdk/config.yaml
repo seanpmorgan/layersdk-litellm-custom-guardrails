@@ -1,0 +1,23 @@
+model_list:
+  - model_name: gemini-2-flash
+    litellm_params:
+      model: gemini/gemini-2.0-flash-exp
+      api_key: "os.environ//GEMINI_API_KEY"
+      # Force it to use Google AI Studio, not Vertex AI
+      vertex_project: null
+      vertex_location: null
+
+guardrails:
+  - guardrail_name: "layer-pre-guard"
+    litellm_params:
+      guardrail: layer_guardrail.myCustomGuardrail  # Import from layer_guardrail.py
+      mode: "pre_call,post_call"                              # Track prompt/session creation                   # Track successful responses
+
+
+      
+general_settings:
+  master_key: sk-1234
+
+litellm_settings:
+  drop_params: true
+  set_verbose: true
