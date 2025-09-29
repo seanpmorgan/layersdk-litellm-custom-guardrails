@@ -29,10 +29,12 @@ pip install -r litellm-protectai-layersdk/requirements.txt
 3) Configure Layer SDK credentials
 You'll need these values from your Layer account:
 
+```
 * LAYER_APPLICATION_ID: Your Layer application ID
 * LAYER_BASE_URL: Your Layer instance URL
 * LAYER_OIDC_CLIENT_ID: OIDC client identifier
 * LAYER_OIDC_CLIENT_SECRET: OIDC client secret (stored in secrets.json)
+```
 
 4) Update & Load secrets
 Update secrets.json with your API keys:
