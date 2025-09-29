@@ -1,8 +1,49 @@
 # Quickstart: LiteLLM + Layer SDK guardrail
 
+🚀 A quickstart integration between LiteLLM and Layer SDK that provides comprehensive AI safety guardrails, real-time monitoring, and session tracking for any LLM provider.
 Follow these steps to run the example guardrail and walk through the notebook integration.
 
-1) Load secrets
+## Prerequisites
+
+* Python 3.9+
+* Layer SDK account and API credentials
+* LiteLLM proxy setup
+* Model provider API keys (OpenAI, Anthropic, etc.)
+
+## Steps
+
+1) CLone the repository
+
+```zsh
+git clone https://github.com/protectai/layersdk-litellm-custom-guardrails.git
+```
+
+2) Create a virtual environment and install dependencies
+
+```zsh
+python3 -m venv litellm-layer-env
+source litellm-layer-env/bin/activate
+pip install -r litellm-protectai-layersdk/requirements.txt
+```
+
+3) Configure Layer SDK credentials
+You'll need these values from your Layer account:
+
+* LAYER_APPLICATION_ID: Your Layer application ID
+* LAYER_BASE_URL: Your Layer instance URL
+* LAYER_OIDC_CLIENT_ID: OIDC client identifier
+* LAYER_OIDC_CLIENT_SECRET: OIDC client secret (stored in secrets.json)
+
+4) Update & Load secrets
+Update secrets.json with your API keys:
+
+```json
+{
+  "GEMINI_API_KEY": "your_gemini_api_key_here",
+  "OPENAI_API_KEY": "your_openai_api_key_here", 
+  "LAYER_DEMO2_AUTH_CLIENT_SECRET": "your_layer_client_secret_here"
+}
+```
 
 If you keep secrets in the repository helper, source the helper script before starting. From the repo root run:
 
@@ -11,6 +52,34 @@ source litellm-protectai-layersdk/load_secrets.sh
 ```
 
 This script should export any required environment variables (for example `LAYER_OIDC_CLIENT_SECRET`). If you prefer, set environment variables manually instead of using the helper script.
+
+5) LiteLLM configuration (config.yaml)
+```yaml
+model_list:
+  - model_name: gemini-2-flash
+    litellm_params:
+      model: gemini/gemini-2.0-flash-exp
+      api_key: env/GEMINI_API_KEY
+
+  - model_name: gpt-4
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: env/OPENAI_API_KEY
+
+# Single guardrail entry for both pre and post call hooks  
+guardrails:
+  - guardrail_name: "layer-tracking"
+    litellm_params:
+      guardrail: layer_guardrail.myCustomGuardrail
+      mode: "pre_call,post_call"
+
+general_settings:
+  master_key: sk-1234
+  
+litellm_settings:
+  drop_params: true
+  set_verbose: true
+
 
 2) Start the example application
 

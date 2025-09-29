@@ -1,0 +1,4 @@
+litellm[proxy]
+layer-sdk
+httpx
+python-dotenv
