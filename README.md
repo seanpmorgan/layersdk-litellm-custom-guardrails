@@ -26,7 +26,7 @@ source litellm-layer-env/bin/activate
 pip install -r litellm-protectai-layersdk/requirements.txt
 ```
 
-3) Configure Layer SDK credentials
+3) Get Layer SDK credentials
 You'll need these values from your Layer account:
 
 ```
