@@ -136,6 +136,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
+.env.*.local
 .envrc
 .venv
 env/
@@ -143,6 +145,33 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+# Allow .env.example files
+!.env.example
+
+# Secrets and API Keys
+secrets.json
+*secrets*.json
+*.key
+*.pem
+*.p12
+*.pfx
+.secrets/
+credentials.json
+auth.json
+
+# LiteLLM specific
+config.yaml.local
+*.db
+litellm.log
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Spyder project settings
 .spyderproject

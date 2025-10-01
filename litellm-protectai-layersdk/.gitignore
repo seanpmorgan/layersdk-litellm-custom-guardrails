@@ -1,5 +1,43 @@
+# Secrets and API Keys
 secrets.json
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+credentials.json
+auth.json
+
+# Allow template files
+!secrets.json.example
+!.env.example
+
+# LiteLLM specific
 *.db
 *.log
+litellm.log
+config.yaml.local
+
+# Python
 __pycache__/
-.env
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store

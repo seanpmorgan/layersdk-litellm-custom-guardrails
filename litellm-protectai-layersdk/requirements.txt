@@ -1,6 +1,5 @@
 litellm[proxy]
 protectai-layer-sdk
-httpx
 python-dotenv
 requests
-
+aiohttp

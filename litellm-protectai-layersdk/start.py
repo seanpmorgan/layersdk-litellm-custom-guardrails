@@ -4,20 +4,43 @@ import os
 import subprocess
 import sys
 import time
+from dotenv import load_dotenv
 
 def load_secrets():
-    """Load secrets from secrets.json into environment variables"""
+    """Load secrets from .env or secrets.json into environment variables"""
+    # Try loading from .env file first
+    if os.path.exists('.env'):
+        print("📄 Loading credentials from .env file...")
+        load_dotenv('.env')
+
+        # Check if key variables are loaded
+        required_vars = ['GEMINI_API_KEY', 'LAYER_APPLICATION_ID']
+        loaded_vars = []
+        for var in required_vars:
+            if os.getenv(var):
+                loaded_vars.append(var)
+                masked_value = f"{os.getenv(var)[:8]}...{os.getenv(var)[-4:]}" if len(os.getenv(var)) > 12 else "****"
+                print(f"✅ Loaded {var}: {masked_value}")
+
+        if loaded_vars:
+            print(f"✅ Successfully loaded {len(loaded_vars)} variables from .env")
+            return
+
+    # Fallback to secrets.json
     try:
+        print("📄 Loading credentials from secrets.json...")
         with open('secrets.json', 'r') as f:
             secrets = json.load(f)
-        
+
         for key, value in secrets.items():
-            os.environ[key] = str(value)
-            masked_value = f"{str(value)[:8]}...{str(value)[-4:]}" if len(str(value)) > 12 else "****"
-            print(f"✅ Loaded {key}: {masked_value}")
-            
+            if value:  # Only set non-empty values
+                os.environ[key] = str(value)
+                masked_value = f"{str(value)[:8]}...{str(value)[-4:]}" if len(str(value)) > 12 else "****"
+                print(f"✅ Loaded {key}: {masked_value}")
+
     except FileNotFoundError:
-        print("❌ secrets.json not found!")
+        print("❌ Neither .env nor secrets.json found!")
+        print("💡 Copy .env.example to .env or secrets.json.example to secrets.json")
         sys.exit(1)
     except Exception as e:
         print(f"❌ Error loading secrets: {e}")

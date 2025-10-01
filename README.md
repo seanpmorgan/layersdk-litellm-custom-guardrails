@@ -1,125 +1,186 @@
-# Quickstart: LiteLLM + Layer SDK guardrail
+# LiteLLM + Layer SDK Integration
 
-🚀 A quickstart integration between LiteLLM and Layer SDK that provides comprehensive AI safety guardrails, real-time monitoring, and session tracking for any LLM provider.
-Follow these steps to run the example guardrail and walk through the notebook integration.
+🚀 A production-ready integration between LiteLLM and Layer SDK that provides comprehensive AI safety guardrails, real-time monitoring, and session tracking for any LLM provider.
+
+## Features
+
+- **AI Safety Guardrails**: Pre and post-call monitoring with Layer SDK
+- **Session Tracking**: Automatic conversation grouping and context management
+- **Multi-Provider Support**: Works with OpenAI, Anthropic, Google, and other LLM providers
+- **Security First**: Secure credential management with template files
+- **Easy Setup**: Simple configuration with environment variables or JSON
 
 ## Prerequisites
 
-* Python 3.9+
-* Layer SDK account and API credentials
-* LiteLLM proxy setup
-* Model provider API keys (OpenAI, Anthropic, etc.)
+- Python 3.9+
+- Layer SDK account and API credentials
+- Model provider API keys (OpenAI, Google Gemini, etc.)
 
-## Steps
+## Quick Start
 
-1) CLone the repository
+### 1. Clone and Setup
 
-```zsh
+```bash
 git clone https://github.com/protectai/layersdk-litellm-custom-guardrails.git
-```
+cd layersdk-litellm-custom-guardrails
 
-2) Create a virtual environment and install dependencies
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-```zsh
-python3 -m venv litellm-layer-env
-source litellm-layer-env/bin/activate
+# Install dependencies
 pip install -r litellm-protectai-layersdk/requirements.txt
 ```
 
-3) Get Layer SDK credentials
-You'll need these values from your Layer account:
+### 2. Configure Credentials
 
-```
-LAYER_APPLICATION_ID: Your Layer application ID
-LAYER_BASE_URL: Your Layer instance URL
-LAYER_OIDC_CLIENT_ID: OIDC client identifier
-LAYER_OIDC_CLIENT_SECRET: OIDC client secret (stored in secrets.json)
-```
+**⚠️ SECURITY**: Never commit actual API keys to version control!
 
-4) Update & Load secrets
-Update secrets.json with your API keys:
+Choose your preferred method:
 
-```json
-{
-  "GEMINI_API_KEY": "your_gemini_api_key_here",
-  "OPENAI_API_KEY": "your_openai_api_key_here", 
-  "LAYER_DEMO2_AUTH_CLIENT_SECRET": "your_layer_client_secret_here"
-}
+**Option A: Environment File (Recommended)**
+```bash
+cp litellm-protectai-layersdk/.env.example litellm-protectai-layersdk/.env
+# Edit .env with your actual credentials
 ```
 
-If you keep secrets in the repository helper, source the helper script before starting. From the repo root run:
-
-```zsh
-source litellm-protectai-layersdk/load_secrets.sh
+**Option B: JSON Configuration**
+```bash
+cp litellm-protectai-layersdk/secrets.json.example litellm-protectai-layersdk/secrets.json
+# Edit secrets.json with your actual credentials
 ```
 
-This script should export any required environment variables (for example `LAYER_OIDC_CLIENT_SECRET`). If you prefer, set environment variables manually instead of using the helper script.
+#### Required Credentials
 
-5) LiteLLM configuration (config.yaml)
+Get these from your respective accounts:
+- **GEMINI_API_KEY**: From [Google AI Studio](https://aistudio.google.com/app/apikey)
+- **LAYER_APPLICATION_ID**: From your Layer dashboard
+- **LAYER_OIDC_CLIENT_SECRET**: From your Layer OIDC configuration
+- **LAYER_BASE_URL**: Your Layer instance URL
+
+### 3. Start LiteLLM with Layer Integration
+
+```bash
+cd litellm-protectai-layersdk
+python start.py
+```
+
+This will:
+- Load your credentials from `.env` or `secrets.json`
+- Start LiteLLM proxy on `http://localhost:4000`
+- Enable Layer SDK guardrails for all requests
+
+### 4. Test the Integration
+
+Check that the service is running:
+```bash
+curl -sSf http://localhost:4000/health || echo "LiteLLM not responding"
+```
+
+### 5. Explore with Jupyter Notebook
+
+Open `litellm-protectai-layersdk/layer_integration.ipynb` to see:
+- Example API requests with guardrails
+- Session tracking demonstrations
+- Permission gate configuration
+- Real-time monitoring examples
+
+## Configuration
+
+### LiteLLM Config (`config.yaml`)
+
+The integration uses a pre-configured LiteLLM setup with:
+
 ```yaml
 model_list:
   - model_name: gemini-2-flash
     litellm_params:
       model: gemini/gemini-2.0-flash-exp
-      api_key: env/GEMINI_API_KEY
+      api_key: "os.environ//GEMINI_API_KEY"
 
-  - model_name: gpt-4
-    litellm_params:
-      model: openai/gpt-4o
-      api_key: env/OPENAI_API_KEY
-
-# Single guardrail entry for both pre and post call hooks  
 guardrails:
-  - guardrail_name: "layer-tracking"
+  - guardrail_name: "layer-pre-guard"
     litellm_params:
       guardrail: layer_guardrail.myCustomGuardrail
       mode: "pre_call,post_call"
 
 general_settings:
-  master_key: sk-1234
-  
-litellm_settings:
-  drop_params: true
-  set_verbose: true
-
-
-2) Start the example application
-
-From the repo root run the example runner:
-
-```zsh
-python litellm-protectai-layersdk/start.py
+  master_key: sk-1234  # Change this for production!
 ```
 
-The runner uses the local virtual environment in `litellm-layer-env` if you activate it, but you can run with any Python environment that has the project's dependencies installed.
+### Layer SDK Configuration
 
-3) Ensure LiteLLM is listening on localhost:4000
+The guardrail automatically configures Layer SDK with:
+- Session tracking for conversation grouping
+- Pre-call and post-call monitoring
+- Firewall integration for content filtering
+- Permission-based API access control
 
-The example integration expects LiteLLM to be available at `http://localhost:4000`.
-Check that the service is up with a quick request:
+## Permission Control
 
-```zsh
-curl -sSf http://localhost:4000/ || echo "LiteLLM not responding on localhost:4000"
+The guardrail includes a permission gate that controls when Layer APIs are called. Grant permissions using any of these methods:
+
+1. **Environment Variable** (for testing):
+   ```bash
+   export LAYER_ALLOW_SYNC=1
+   ```
+
+2. **API Key Permissions**: Include `sync` or `augment` in the `user_api_key_dict` permissions
+
+3. **Request Header**:
+   ```bash
+   curl -H "x-allow-sync: true" http://localhost:4000/v1/chat/completions
+   ```
+
+## Project Structure
+
+```
+litellm-protectai-layersdk/
+├── layer_guardrail.py          # Main guardrail implementation
+├── start.py                    # Application launcher
+├── config.yaml                 # LiteLLM configuration
+├── requirements.txt            # Python dependencies
+├── layer_integration.ipynb     # Interactive examples
+├── .env.example               # Environment template
+└── secrets.json.example       # JSON credentials template
 ```
 
-If LiteLLM is not running locally, start it according to your LiteLLM setup. This repository assumes you already have LiteLLM configured; `start.py` will integrate with it.
+## Security
 
-4) Open and follow the notebook
+🔒 **Security Features:**
+- All sensitive files automatically ignored by `.gitignore`
+- Template files provided for safe credential management
+- No hardcoded secrets in tracked files
+- Production-ready environment variable support
 
-Open the notebook `litellm-protectai-layersdk/layer_integration.ipynb` in Jupyter or VS Code and follow the cells step-by-step. The notebook demonstrates example requests, how the guardrail attaches sessions, and how to exercise the permission gate.
+See [SECURITY.md](SECURITY.md) for detailed security guidelines.
 
-Quick notes and tips
-- Permission gate: the guardrail will only call Layer APIs when a sync permission is present. You can grant permission in one of three ways:
-  - Set `LAYER_ALLOW_SYNC=1` (env) to allow syncing for all requests (useful for testing).
-  - Provide `permissions` or `scopes` on the `user_api_key_dict` that include `sync` or `augment`.
-  - Add a metadata header on a request: `x-allow-sync: true`.
+## Troubleshooting
 
-- If you used `load_secrets.sh` it should have exported necessary OIDC secrets; otherwise set `LAYER_OIDC_CLIENT_SECRET` and related env vars manually.
+**LiteLLM not starting?**
+- Check that all required credentials are set
+- Verify API keys are valid
+- Ensure port 4000 is available
 
-- To debug, watch the stdout printed by `start.py` and `layer_guardrail.py` — the guardrail prints diagnostic messages about initialization, permission checks, and firewall decisions.
+**Layer SDK connection issues?**
+- Verify `LAYER_BASE_URL` and `LAYER_APPLICATION_ID`
+- Check OIDC credentials are correct
+- Enable debug logging with `LAYER_ALLOW_SYNC=1`
 
-Where to look in the code
-- `litellm-protectai-layersdk/layer_guardrail.py` — main guardrail implementation; exported as `myCustomGuardrail`.
-- `litellm-protectai-layersdk/start.py` — example runner that integrates the guardrail.
-- `litellm-protectai-layersdk/layer_integration.ipynb` — walkthrough notebook to exercise the integration.
+**Permission denied errors?**
+- Set `LAYER_ALLOW_SYNC=1` for testing
+- Add `x-allow-sync: true` header to requests
+- Check API key permissions include `sync` scope
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+See [LICENSE](LICENSE) for details.
 
