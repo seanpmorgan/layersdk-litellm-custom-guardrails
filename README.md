@@ -6,7 +6,7 @@
 
 - **AI Safety Guardrails**: Pre and post-call monitoring with Layer SDK
 - **Session Tracking**: Automatic conversation grouping and context management
-- **Multi-Provider Support**: Works with OpenAI, Anthropic, Google, and other LLM providers
+- **Multi-Provider Support**: Works with OpenAI, Anthropic, Google, and other LLM providers (has only been tested with Google Gemini Flash 2.0
 - **Security First**: Secure credential management with template files
 - **Easy Setup**: Simple configuration with environment variables or JSON
 
