@@ -36,18 +36,10 @@ pip install -r litellm-protectai-layersdk/requirements.txt
 
 **⚠️ SECURITY**: Never commit actual API keys to version control!
 
-Choose your preferred method:
-
-**Option A: Environment File (Recommended)**
+**Environment File (Recommended)**
 ```bash
 cp litellm-protectai-layersdk/.env.example litellm-protectai-layersdk/.env
 # Edit .env with your actual credentials
-```
-
-**Option B: JSON Configuration**
-```bash
-cp litellm-protectai-layersdk/secrets.json.example litellm-protectai-layersdk/secrets.json
-# Edit secrets.json with your actual credentials
 ```
 
 #### Required Credentials
@@ -57,6 +49,7 @@ Get these from your respective accounts:
 - **LAYER_APPLICATION_ID**: From your Layer dashboard
 - **LAYER_OIDC_CLIENT_SECRET**: From your Layer OIDC configuration
 - **LAYER_BASE_URL**: Your Layer instance URL
+- **LAYER_FIREWALL_URL**: Your Layer instance URL
 
 ### 3. Start LiteLLM with Layer Integration
 
@@ -66,7 +59,7 @@ python start.py
 ```
 
 This will:
-- Load your credentials from `.env` or `secrets.json`
+- Load your credentials from `.env`
 - Start LiteLLM proxy on `http://localhost:4000`
 - Enable Layer SDK guardrails for all requests
 

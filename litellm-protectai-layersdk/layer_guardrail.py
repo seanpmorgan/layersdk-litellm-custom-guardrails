@@ -55,28 +55,21 @@ class LayerGuardrail(CustomGuardrail):
         """Initialize Layer SDK with environment variables"""
         try:
             # Hardcoded values for testing (replace with your actual values)
-            application_id = os.getenv("LAYER_APPLICATION_ID") or "42b1a5ce-584e-4c22-ba4d-080134599acc"
-            base_url = os.getenv("LAYER_BASE_URL") or "https://layer.demo02.protectai.cloud/"
-            environment = os.getenv("LAYER_ENVIRONMENT") or "demo02"
+            application_id = os.getenv("LAYER_APPLICATION_ID")
+            base_url = os.getenv("LAYER_BASE_URL")
+            environment = os.getenv("LAYER_ENVIRONMENT")
             
-            # Load client secret from secrets.json as fallback
+            # Load client secret
             client_secret = os.getenv("LAYER_OIDC_CLIENT_SECRET")
-            if not client_secret:
-                try:
-                    with open('secrets.json') as f:
-                        secrets = json.load(f)
-                    client_secret = secrets.get('LAYER_DEMO2_AUTH_CLIENT_SECRET')
-                except:
-                    pass
-            
+
             print(f"Initializing with app_id: {application_id}")
             
             # Initialize with authentication if available
             auth_provider = None
-            client_id = os.getenv("LAYER_OIDC_CLIENT_ID") or "demo02/layer-sdk"
+            client_id = os.getenv("LAYER_OIDC_CLIENT_ID")
             if client_secret:
                 auth_provider = OIDCClientCredentials(
-                    token_url=os.getenv("LAYER_OIDC_TOKEN_URL", "https://auth.protectai.cloud/realms/demo02/protocol/openid-connect/token"),
+                    token_url=os.getenv("LAYER_OIDC_TOKEN_URL"),
                     client_id=client_id,
                     client_secret=client_secret,
                 )
@@ -100,7 +93,7 @@ class LayerGuardrail(CustomGuardrail):
             return False
 
     def _create_session_with_workaround(self, attributes):
-        """Create session with workaround for Layer SDK bug"""
+        """Create session with workaround"""
         try:
             return layer.create_session(attributes=attributes)
         except Exception as e:
